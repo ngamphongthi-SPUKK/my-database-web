@@ -28,19 +28,19 @@
 
     <script>
     const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4'; // คีย์ของคุณ
-
-    // 1. เปลี่ยนชื่อตัวแปรตรงนี้ (ห้ามใช้ชื่อ supabase เฉยๆ)
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4';
+    
+    // 1. เปลี่ยนชื่อตัวแปรจาก supabase เป็น db
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function fetchData() {
-        // 2. เปลี่ยนมาใช้ชื่อ supabaseClient
-        const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: false });
+        // 2. เปลี่ยนมาใช้ db.from
+        const { data, error } = await db.from('messages').select('*').order('id', { ascending: false });
         
-        if (error) { console.error('ดึงข้อมูลพลาด:', error); return; }
+        if (error) { console.error('Error:', error); return; }
 
         const listElement = document.getElementById('list');
-        listElement.innerHTML = data.map(item => 
+        listElement.innerHTML = (data || []).map(item => 
             `<li class="bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm text-slate-700">${item.content}</li>`
         ).join('');
     }
@@ -49,12 +49,12 @@
         const input = document.getElementById('msgInput');
         if (!input.value) return;
         
-        // 3. เปลี่ยนมาใช้ชื่อ supabaseClient ตรงนี้ด้วย
-        const { error } = await supabaseClient.from('messages').insert([{ content: input.value }]);
+        // 3. เปลี่ยนมาใช้ db.from ตรงนี้ด้วย
+        const { error } = await db.from('messages').insert([{ content: input.value }]);
         
         if (error) {
-            console.error('ส่งข้อมูลพลาด:', error);
-            alert("ส่งไม่สำเร็จ! เช็คว่าปิด RLS ใน Supabase หรือยัง?");
+            console.error('Error sending:', error);
+            alert("ส่งไม่สำเร็จ! อย่าลืมปิด RLS ในหน้าเว็บ Supabase นะครับ");
         } else {
             input.value = ''; 
             fetchData(); 
@@ -64,6 +64,8 @@
     fetchData();
 </script>
 
+
 </body>
 </html>
+
 
