@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Live Database Page</title>
-    <!-- 1. ดึง Tailwind CSS มาใช้งาน -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. ดึง SDK ของ Supabase -->
+    <!-- 1. แก้ไข Link SDK ของ Supabase ให้ถูกต้อง -->
     <script src="https://cdn.jsdelivr.net"></script>
 </head>
 <body class="bg-slate-100 min-h-screen p-8">
@@ -14,7 +13,6 @@
     <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
         <h1 class="text-2xl font-bold text-slate-800 mb-4">ส่งข้อความเข้า Database</h1>
         
-        <!-- ส่วนฟอร์มส่งข้อมูล -->
         <div class="flex gap-2 mb-6">
             <input type="text" id="msgInput" placeholder="พิมพ์ข้อความ..." 
                 class="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -24,36 +22,41 @@
 
         <h2 class="font-semibold text-slate-600 mb-2">ข้อความทั้งหมด:</h2>
         <ul id="list" class="space-y-2">
-            <!-- ข้อมูลจากฐานข้อมูลจะมาโชว์ตรงนี้ -->
+            <!-- ข้อมูลจะแสดงที่นี่ -->
         </ul>
     </div>
 
     <script>
-        // 3. ตั้งค่าการเชื่อมต่อ (เอาข้อมูลจาก Supabase มาใส่ตรงนี้)
         const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // 2. แก้ไขการสร้าง Client (ใช้ supabase.createClient ไม่ได้เพราะชื่อตัวแปรซ้ำ)
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ฟังก์ชันดึงข้อมูลมาแสดงผล
         async function fetchData() {
-            const { data, error } = await supabase.from('messages').select('*').order('id', { ascending: false });
+            const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: false });
+            if (error) { console.error(error); return; }
+            
             const listElement = document.getElementById('list');
             listElement.innerHTML = data.map(item => 
                 `<li class="bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm text-slate-700">${item.content}</li>`
             ).join('');
         }
 
-        // ฟังก์ชันส่งข้อมูลเข้าฐานข้อมูล
         async function sendData() {
             const input = document.getElementById('msgInput');
             if (!input.value) return;
             
-            await supabase.from('messages').insert([{ content: input.value }]);
-            input.value = ''; // ล้างช่องกรอก
-            fetchData(); // อัปเดตรายการ
+            const { error } = await supabaseClient.from('messages').insert([{ content: input.value }]);
+            if (error) {
+                alert("ส่งข้อมูลไม่สำเร็จ! ตรวจสอบว่าสร้างตาราง 'messages' และปิด RLS หรือยัง?");
+                console.error(error);
+            } else {
+                input.value = ''; 
+                fetchData(); 
+            }
         }
 
-        // เรียกข้อมูลครั้งแรกตอนเปิดหน้าเว็บ
         fetchData();
     </script>
 </body>
