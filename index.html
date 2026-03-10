@@ -28,45 +28,44 @@
     </div>
 
     <script>
-        // ข้อมูลการเชื่อมต่อของคุณ
-        const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4';
+    // 1. ประกาศค่าคงที่
+    const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4';
 
-        // สร้าง Client (ใช้คำสั่งจาก Library ที่โหลดมา)
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 2. สร้าง Client และเก็บไว้ใน window เพื่อให้เรียกใช้ได้จากทุกที่
+    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function fetchData() {
-            try {
-                const { data, error } = await client.from('messages').select('*').order('id', { ascending: false });
-                if (error) throw error;
+    // ฟังก์ชันดึงข้อมูล
+    async function fetchData() {
+        const { data, error } = await window.supabaseClient.from('messages').select('*').order('id', { ascending: false });
+        if (error) return console.error(error);
 
-                const listElement = document.getElementById('list');
-                listElement.innerHTML = (data || []).map(item => 
-                    `<li class="bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm text-slate-700">${item.content}</li>`
-                ).join('');
-            } catch (err) {
-                console.error("Fetch error:", err.message);
-            }
+        const listElement = document.getElementById('list');
+        listElement.innerHTML = (data || []).map(item => 
+            `<li class="bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm text-slate-700">${item.content}</li>`
+        ).join('');
+    }
+
+    // ฟังก์ชันส่งข้อมูล
+    async function sendData() {
+        const input = document.getElementById('msgInput');
+        if (!input.value) return;
+        
+        // ใช้ window.supabaseClient แทน client เฉยๆ
+        const { error } = await window.supabaseClient.from('messages').insert([{ content: input.value }]);
+        
+        if (error) {
+            alert("ส่งไม่สำเร็จ: " + error.message);
+        } else {
+            input.value = ''; 
+            fetchData(); 
         }
+    }
 
-        async function sendData() {
-            const input = document.getElementById('msgInput');
-            if (!input.value) return;
-            
-            try {
-                const { error } = await client.from('messages').insert([{ content: input.value }]);
-                if (error) throw error;
-                
-                input.value = ''; 
-                fetchData(); 
-            } catch (err) {
-                alert("ส่งไม่สำเร็จ! เช็คว่าสร้างตาราง 'messages' และปิด RLS หรือยัง?\nError: " + err.message);
-                console.error("Send error:", err);
-            }
-        }
+    // เรียกทำงานครั้งแรก
+    fetchData();
+</script>
 
-        // โหลดข้อมูลทันทีที่เปิดหน้า
-        fetchData();
-    </script>
 </body>
 </html>
+
