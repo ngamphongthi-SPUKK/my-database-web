@@ -26,18 +26,20 @@
         </ul>
     </div>
 
-    <script>
+    <!-- 1. เช็คว่าบรรทัดนี้ต้องอยู่บนสุดใน <head> -->
+<script src="https://cdn.jsdelivr.net"></script>
+
+<script>
     const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4';
-    
-    // 1. เปลี่ยนชื่อตัวแปรจาก supabase เป็น db
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // เปลี่ยนชื่อตัวแปรเป็น myApp เพื่อไม่ให้ซ้ำกับคำสั่ง supabase ของระบบ
+    const myApp = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function fetchData() {
-        // 2. เปลี่ยนมาใช้ db.from
-        const { data, error } = await db.from('messages').select('*').order('id', { ascending: false });
-        
-        if (error) { console.error('Error:', error); return; }
+        // ใช้ myApp แทน
+        const { data, error } = await myApp.from('messages').select('*').order('id', { ascending: false });
+        if (error) return console.error(error);
 
         const listElement = document.getElementById('list');
         listElement.innerHTML = (data || []).map(item => 
@@ -49,12 +51,11 @@
         const input = document.getElementById('msgInput');
         if (!input.value) return;
         
-        // 3. เปลี่ยนมาใช้ db.from ตรงนี้ด้วย
-        const { error } = await db.from('messages').insert([{ content: input.value }]);
+        // ใช้ myApp แทน
+        const { error } = await myApp.from('messages').insert([{ content: input.value }]);
         
         if (error) {
-            console.error('Error sending:', error);
-            alert("ส่งไม่สำเร็จ! อย่าลืมปิด RLS ในหน้าเว็บ Supabase นะครับ");
+            alert("ส่งไม่สำเร็จ! เช็คว่าปิด RLS หรือยัง");
         } else {
             input.value = ''; 
             fetchData(); 
@@ -65,7 +66,9 @@
 </script>
 
 
+
 </body>
 </html>
+
 
 
