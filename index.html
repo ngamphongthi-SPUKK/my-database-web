@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Live Database Page</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 1. แก้ไข Link SDK ของ Supabase ให้ถูกต้อง -->
-    <script src="https://cdn.jsdelivr.net"></script>
+    <!-- ดึง Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- ดึง Supabase SDK (ห้ามลบ @2 ข้างหลัง) -->
+<script src="https://cdn.jsdelivr.net"></script
+<!-- 1. เช็คว่าบรรทัดนี้ต้องอยู่บนสุดใน <head> -->
+<script src="https://cdn.jsdelivr.net"></script>
+
 </head>
 <body class="bg-slate-100 min-h-screen p-8">
 
@@ -26,20 +30,17 @@
         </ul>
     </div>
 
-    <!-- 1. เช็คว่าบรรทัดนี้ต้องอยู่บนสุดใน <head> -->
-<script src="https://cdn.jsdelivr.net"></script>
 
 <script>
     const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4';
 
-    // เปลี่ยนชื่อตัวแปรเป็น myApp เพื่อไม่ให้ซ้ำกับคำสั่ง supabase ของระบบ
-    const myApp = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // ใช้คำสั่งจาก window โดยตรงเพื่อป้องกัน Error "Not defined"
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function fetchData() {
-        // ใช้ myApp แทน
-        const { data, error } = await myApp.from('messages').select('*').order('id', { ascending: false });
-        if (error) return console.error(error);
+        const { data, error } = await client.from('messages').select('*').order('id', { ascending: false });
+        if (error) { console.error(error); return; }
 
         const listElement = document.getElementById('list');
         listElement.innerHTML = (data || []).map(item => 
@@ -51,11 +52,11 @@
         const input = document.getElementById('msgInput');
         if (!input.value) return;
         
-        // ใช้ myApp แทน
-        const { error } = await myApp.from('messages').insert([{ content: input.value }]);
+        const { error } = await client.from('messages').insert([{ content: input.value }]);
         
         if (error) {
-            alert("ส่งไม่สำเร็จ! เช็คว่าปิด RLS หรือยัง");
+            alert("ส่งไม่สำเร็จ! เช็คตาราง 'messages' และปิด RLS หรือยัง?");
+            console.error(error);
         } else {
             input.value = ''; 
             fetchData(); 
@@ -67,8 +68,10 @@
 
 
 
+
 </body>
 </html>
+
 
 
 
