@@ -27,37 +27,43 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4';
+    const SUPABASE_URL = 'https://lwdovklhnognkgmyvnpf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZG92a2xobm9nbmtnbXl2bnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODc0MDUsImV4cCI6MjA4ODY2MzQwNX0.o5LR33uwWPHrcyFYwJMZT6mxakVk-MZ3KuZxpZ5QuM4'; // คีย์ของคุณ
+
+    // 1. เปลี่ยนชื่อตัวแปรตรงนี้ (ห้ามใช้ชื่อ supabase เฉยๆ)
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function fetchData() {
+        // 2. เปลี่ยนมาใช้ชื่อ supabaseClient
+        const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: false });
         
-        // 2. แก้ไขการสร้าง Client (ใช้ supabase.createClient ไม่ได้เพราะชื่อตัวแปรซ้ำ)
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        if (error) { console.error('ดึงข้อมูลพลาด:', error); return; }
 
-        async function fetchData() {
-            const { data, error } = await supabaseClient.from('messages').select('*').order('id', { ascending: false });
-            if (error) { console.error(error); return; }
-            
-            const listElement = document.getElementById('list');
-            listElement.innerHTML = data.map(item => 
-                `<li class="bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm text-slate-700">${item.content}</li>`
-            ).join('');
+        const listElement = document.getElementById('list');
+        listElement.innerHTML = data.map(item => 
+            `<li class="bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-sm text-slate-700">${item.content}</li>`
+        ).join('');
+    }
+
+    async function sendData() {
+        const input = document.getElementById('msgInput');
+        if (!input.value) return;
+        
+        // 3. เปลี่ยนมาใช้ชื่อ supabaseClient ตรงนี้ด้วย
+        const { error } = await supabaseClient.from('messages').insert([{ content: input.value }]);
+        
+        if (error) {
+            console.error('ส่งข้อมูลพลาด:', error);
+            alert("ส่งไม่สำเร็จ! เช็คว่าปิด RLS ใน Supabase หรือยัง?");
+        } else {
+            input.value = ''; 
+            fetchData(); 
         }
+    }
 
-        async function sendData() {
-            const input = document.getElementById('msgInput');
-            if (!input.value) return;
-            
-            const { error } = await supabaseClient.from('messages').insert([{ content: input.value }]);
-            if (error) {
-                alert("ส่งข้อมูลไม่สำเร็จ! ตรวจสอบว่าสร้างตาราง 'messages' และปิด RLS หรือยัง?");
-                console.error(error);
-            } else {
-                input.value = ''; 
-                fetchData(); 
-            }
-        }
+    fetchData();
+</script>
 
-        fetchData();
-    </script>
 </body>
 </html>
+
